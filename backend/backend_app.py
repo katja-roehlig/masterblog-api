@@ -28,7 +28,22 @@ def find_post_by_id(id):
 
 @app.route("/api/posts", methods=["GET"])
 def get_posts():
-    return jsonify(POSTS)
+    sort = request.args.get("sort")
+    direction = request.args.get("direction", "asc")
+    print(sort, type(sort), direction)
+    if not sort:
+        return jsonify(POSTS)
+    if sort in {"title", "content"}:
+        if direction == "desc":
+            new_list = sorted(POSTS, key=lambda x: x[sort].lower(), reverse=True)
+        else:
+            new_list = sorted(POSTS, key=lambda x: x[sort].lower())
+        return jsonify(new_list)
+    else:
+        return (
+            jsonify({"Error": f"You can not sort for {sort}"}),
+            404,
+        )
 
 
 @app.route("/api/posts/search", methods=["GET"])
