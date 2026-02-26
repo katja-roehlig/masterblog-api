@@ -1,6 +1,5 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import random
 
 app = Flask(__name__)
 CORS(app)  # This will enable CORS for all routes
@@ -30,6 +29,27 @@ def find_post_by_id(id):
 @app.route("/api/posts", methods=["GET"])
 def get_posts():
     return jsonify(POSTS)
+
+
+@app.route("/api/posts/search", methods=["GET"])
+def get_filtered_posts():
+    filtered_title = request.args.get("title")
+    filtered_content = request.args.get("content")
+    print(filtered_title, filtered_content)
+    filtered_list = POSTS
+    if filtered_title:
+        filtered_list = [
+            post
+            for post in filtered_list
+            if filtered_title.lower() in post["title"].lower()
+        ]
+    if filtered_content:
+        filtered_list = [
+            post
+            for post in filtered_list
+            if filtered_content.lower() in post["content"].lower()
+        ]
+    return jsonify(filtered_list)
 
 
 @app.route("/api/posts", methods=["POST"])
@@ -64,6 +84,24 @@ def delete_post(id):
         jsonify({"message": f"Post with id {id} has been deleted successfully."}),
         200,
     )
+
+
+@app.route("/api/post/<int:id>", methods=["PUT"])
+def update_post(id):
+    post = find_post_by_id(id)
+    if not post:
+        return (
+            jsonify({"Error": f"Post with id {id} was not found. Please check again"}),
+            404,
+        )
+    user_input = request.get_json()
+    updated_post = {
+        "id": id,
+        "title": user_input.get("title", post["title"]),
+        "content": user_input.get("content", post["content"]),
+    }
+    post.update(updated_post)
+    return jsonify(updated_post), 200
 
 
 if __name__ == "__main__":
