@@ -46,6 +46,17 @@ def get_posts():
         )
 
 
+@app.route("/api/posts/<int:id>", methods=["GET"])
+def get_post_by_id(id):
+    post = find_post_by_id(id)
+    if not post:
+        return (
+            jsonify({"error": f"Post with id {id} was not found. Please check again"}),
+            404,
+        )
+    return jsonify(post)
+
+
 @app.route("/api/posts/search", methods=["GET"])
 def get_filtered_posts():
     filtered_title = request.args.get("title")
@@ -74,7 +85,7 @@ def create_posts():
     error_list = validate_post_data(user_input)
     if error_list:
         return (
-            jsonify({"Error": f"Missing required data: {", ".join(error_list)}"}),
+            jsonify({"error": f"Missing required data: {", ".join(error_list)}"}),
             400,
         )
     new_post = {
@@ -91,7 +102,7 @@ def delete_post(id):
     delete_post = find_post_by_id(id)
     if not delete_post:
         return (
-            jsonify({"Error": f"Post with id {id} was not found. Please check again"}),
+            jsonify({"error": f"Post with id {id} was not found. Please check again"}),
             404,
         )
     POSTS.remove(delete_post)
@@ -101,7 +112,7 @@ def delete_post(id):
     )
 
 
-@app.route("/api/post/<int:id>", methods=["PUT"])
+@app.route("/api/posts/<int:id>", methods=["PUT"])
 def update_post(id):
     post = find_post_by_id(id)
     if not post:
